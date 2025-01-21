@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { ServerCard, ThemeButton } from './components';
 import { ServerData } from './types';
+import { validate } from "./utils";
 
 export default function Home() {
   const [serverData, setServerData] = useState<ServerData[] | null>(null);
@@ -10,7 +11,8 @@ export default function Home() {
     const fetchServerData = async (): Promise<ServerData[]> => {
       const response = await fetch("/api/mock");
       if (!response.ok) throw new Error("Failed to fetch server data");
-      return response.json();
+      const data = await response.json();
+      return validate(data);
     };
 
     fetchServerData()
@@ -31,13 +33,7 @@ export default function Home() {
             </div>
           </header>
           <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {serverData ? (
-              serverData.map((server) => (
-                <ServerCard key={server.id} server={server} />
-              ))
-            ) : (
-              <p>Loading...</p>
-            )}
+            {serverData?.map((server) => (<ServerCard key={server.id} server={server} />)) || <p>Loading...</p>}
           </section>
         </main>
       </div>

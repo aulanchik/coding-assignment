@@ -1,42 +1,27 @@
 'use client';
 
-import { FC, createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+
+type Theme = "light" | "dark";
 
 interface ThemeContextProps {
-    theme: "light" | "dark";
+    theme: Theme;
     toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
-export const ThemeProvider: FC<{ children: ReactNode }> = ({ children }) => {
-    const [theme, setTheme] = useState<"light" | "dark">("light");
-    const [isHydrated, setIsHydrated] = useState(false);
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+    const [theme, setTheme] = useState<Theme>(() => localStorage.getItem("theme") as Theme || "light");
 
     useEffect(() => {
-        const storedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-        if (storedTheme) {
-            setTheme(storedTheme);
-        }
-        setIsHydrated(true);
-    }, []);
+        const root = document.documentElement;
+        root.classList.remove(theme === "light" ? "dark" : "light");
+        root.classList.add(theme);
+        localStorage.setItem("theme", theme);
+    }, [theme]);
 
-    useEffect(() => {
-        if (isHydrated) {
-            const root = document.documentElement;
-            root.classList.remove(theme === "light" ? "dark" : "light");
-            root.classList.add(theme);
-            localStorage.setItem("theme", theme);
-        }
-    }, [theme, isHydrated]);
-
-    const toggleTheme = () => {
-        setTheme((prev) => (prev === "light" ? "dark" : "light"));
-    };
-
-    if (!isHydrated) {
-        return null;
-    }
+    const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
     return (
         <ThemeContext.Provider value={{ theme, toggleTheme }}>

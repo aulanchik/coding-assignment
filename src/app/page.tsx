@@ -1,24 +1,29 @@
 "use client";
-import { useEffect, useState } from "react";
 import { ServerCard, ThemeButton } from './components';
-import { ServerData } from './types';
-import { validate } from "./utils";
+import { useServerData } from './hooks/useServerData';
 
 export default function Home() {
-  const [serverData, setServerData] = useState<ServerData[] | null>(null);
+  const { serverData, error, loading } = useServerData();
 
-  useEffect(() => {
-    const fetchServerData = async (): Promise<ServerData[]> => {
-      const response = await fetch("/api/mock");
-      if (!response.ok) throw new Error("Failed to fetch server data");
-      const data = await response.json();
-      return validate(data);
-    };
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <p role="alert" className="text-gray-700 dark:text-gray-300">
+          Loading data...
+        </p>
+      </div>
+    );
+  }
 
-    fetchServerData()
-      .then((data) => setServerData(data))
-      .catch((error) => console.error("Error fetching server data:", error));
-  }, []);
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p role="alert" className="text-red-600 dark:text-red-400">
+          Error: {error}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white dark:bg-black">
@@ -33,7 +38,9 @@ export default function Home() {
             </div>
           </header>
           <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {serverData?.map((server) => (<ServerCard key={server.id} server={server} />)) || <p>Loading...</p>}
+            {serverData?.map((server) => (
+              <ServerCard key={server.id} server={server} />
+            ))}
           </section>
         </main>
       </div>
